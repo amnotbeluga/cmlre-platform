@@ -16,7 +16,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
 app.include_router(upload.router, prefix="/api/v1/ingest", tags=["Ingestion"])
 
 @app.get("/health")

@@ -17,7 +17,7 @@ services:
   # ── DATABASES ──────────────────────────────────────────────
 
   timescaledb:
-    image: timescale/timescaledb-ha:pg15-latest
+    image: docker.io/timescale/timescaledb-ha:pg15-latest
     container_name: cmlre-timescaledb
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -25,10 +25,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/home/postgres/pgdata/data
-      - ./db/init_postgres.sql:/docker-entrypoint-initdb.d/01_init.sql
-      - ./db/init_timescale.sql:/docker-entrypoint-initdb.d/02_timescale.sql
+      - ./db/init_postgres.sql:/docker-entrypoint-initdb.d/01_init.sql:z
+      - ./db/init_timescale.sql:/docker-entrypoint-initdb.d/02_timescale.sql:z
     ports:
-      - "5432:5432"
+      - "5433:5432"
     networks:
       - cmlre-network
     healthcheck:
@@ -38,21 +38,21 @@ services:
       retries: 5
 
   mongodb:
-    image: mongo:7.0
+    image: docker.io/mongo:7.0
     container_name: cmlre-mongodb
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - mongo_data:/data/db
-      - ./db/init_mongo.js:/docker-entrypoint-initdb.d/init_mongo.js
+      - ./db/init_mongo.js:/docker-entrypoint-initdb.d/init_mongo.js:z
     ports:
       - "27017:27017"
     networks:
       - cmlre-network
 
   redis:
-    image: redis:7.2-alpine
+    image: docker.io/redis:7.2-alpine
     container_name: cmlre-redis
     ports:
       - "6379:6379"
@@ -62,7 +62,7 @@ services:
       - cmlre-network
 
   minio:
-    image: minio/minio:latest
+    image: docker.io/minio/minio:latest
     container_name: cmlre-minio
     command: server /data --console-address ":9001"
     environment:
@@ -79,7 +79,7 @@ services:
   # ── KAFKA ──────────────────────────────────────────────────
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
+    image: docker.io/confluentinc/cp-zookeeper:7.5.0
     container_name: cmlre-zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -88,10 +88,8 @@ services:
       - cmlre-network
 
   kafka:
-    image: confluentinc/cp-kafka:7.5.0
+    image: docker.io/confluentinc/cp-kafka:7.5.0
     container_name: cmlre-kafka
-    depends_on:
-      - zookeeper
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -113,17 +111,10 @@ services:
     env_file: .env
     ports:
       - "8001:8001"
-    depends_on:
-      timescaledb:
-        condition: service_healthy
-      minio:
-        condition: service_started
-      kafka:
-        condition: service_started
     networks:
       - cmlre-network
     volumes:
-      - ./services/ingestion:/app
+      - ./services/ingestion:/app:z
 
   ai-layer-service:
     build: ./services/ai_layer
@@ -131,13 +122,10 @@ services:
     env_file: .env
     ports:
       - "8002:8002"
-    depends_on:
-      - timescaledb
-      - redis
     networks:
       - cmlre-network
     volumes:
-      - ./services/ai_layer:/app
+      - ./services/ai_layer:/app:z
 
   oceanographic-service:
     build: ./services/oceanographic
@@ -145,13 +133,10 @@ services:
     env_file: .env
     ports:
       - "8003:8003"
-    depends_on:
-      timescaledb:
-        condition: service_healthy
     networks:
       - cmlre-network
     volumes:
-      - ./services/oceanographic:/app
+      - ./services/oceanographic:/app:z
 
   fisheries-service:
     build: ./services/fisheries
@@ -159,13 +144,10 @@ services:
     env_file: .env
     ports:
       - "8004:8004"
-    depends_on:
-      timescaledb:
-        condition: service_healthy
     networks:
       - cmlre-network
     volumes:
-      - ./services/fisheries:/app
+      - ./services/fisheries:/app:z
 
   taxonomy-service:
     build: ./services/taxonomy
@@ -173,13 +155,10 @@ services:
     env_file: .env
     ports:
       - "8005:8005"
-    depends_on:
-      - timescaledb
-      - minio
     networks:
       - cmlre-network
     volumes:
-      - ./services/taxonomy:/app
+      - ./services/taxonomy:/app:z
 
   molecular-service:
     build: ./services/molecular
@@ -187,15 +166,10 @@ services:
     env_file: .env
     ports:
       - "8006:8006"
-    depends_on:
-      - timescaledb
-      - mongodb
-      - minio
-      - kafka
     networks:
       - cmlre-network
     volumes:
-      - ./services/molecular:/app
+      - ./services/molecular:/app:z
 
   analytics-service:
     build: ./services/analytics
@@ -203,13 +177,10 @@ services:
     env_file: .env
     ports:
       - "8007:8007"
-    depends_on:
-      - timescaledb
-      - redis
     networks:
       - cmlre-network
     volumes:
-      - ./services/analytics:/app
+      - ./services/analytics:/app:z
 
   # ── AIRFLOW ────────────────────────────────────────────────
 
@@ -220,11 +191,8 @@ services:
     env_file: .env
     ports:
       - "8080:8080"
-    depends_on:
-      - timescaledb
-      - redis
     volumes:
-      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/dags:/opt/airflow/dags:z
       - airflow_logs:/opt/airflow/logs
     networks:
       - cmlre-network
@@ -234,10 +202,8 @@ services:
     container_name: cmlre-airflow-scheduler
     command: scheduler
     env_file: .env
-    depends_on:
-      - airflow-webserver
     volumes:
-      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/dags:/opt/airflow/dags:z
       - airflow_logs:/opt/airflow/logs
     networks:
       - cmlre-network
@@ -247,10 +213,8 @@ services:
     container_name: cmlre-airflow-worker
     command: celery worker
     env_file: .env
-    depends_on:
-      - airflow-scheduler
     volumes:
-      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/dags:/opt/airflow/dags:z
       - airflow_logs:/opt/airflow/logs
     networks:
       - cmlre-network
@@ -262,18 +226,16 @@ services:
     container_name: cmlre-frontend
     ports:
       - "3000:3000"
-    depends_on:
-      - ingestion-service
-      - ai-layer-service
     networks:
       - cmlre-network
     volumes:
-      - ./frontend/src:/app/src
+      - ./frontend:/app:z
+      - /app/node_modules
 
   # ── API GATEWAY (Kong) ─────────────────────────────────────
 
   kong:
-    image: kong:3.4
+    image: docker.io/kong:3.4
     container_name: cmlre-kong
     environment:
       KONG_DATABASE: "off"
@@ -283,17 +245,9 @@ services:
       KONG_PROXY_ERROR_LOG: /dev/stderr
       KONG_ADMIN_ERROR_LOG: /dev/stderr
     volumes:
-      - ./gateway/kong.yml:/kong/kong.yml
+      - ./gateway/kong.yml:/kong/kong.yml:z
     ports:
       - "8000:8000"
       - "8443:8443"
     networks:
       - cmlre-network
-    depends_on:
-      - ingestion-service
-      - oceanographic-service
-      - fisheries-service
-      - taxonomy-service
-      - molecular-service
-      - analytics-service
-      - ai-layer-service

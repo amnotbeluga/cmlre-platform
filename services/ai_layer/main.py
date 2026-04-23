@@ -16,7 +16,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
 app.include_router(ai.router, prefix="/api/v1/ai", tags=["AI"])
 
 @app.get("/health")
