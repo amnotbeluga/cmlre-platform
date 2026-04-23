@@ -5,7 +5,6 @@ import os
 
 router = APIRouter()
 
-# Persists in-memory only — production should use a database
 UPLOAD_REGISTRY: list[dict] = []
 FORMAT_MAP = {
     ".csv": {"format": "CSV", "pipeline": "tabular_ingest", "description": "Comma-separated values — routed to tabular ingestion pipeline"},

@@ -3,7 +3,6 @@ import json
 import os
 from datetime import datetime
 
-# Connection string
 DB_HOST = os.getenv("POSTGRES_HOST", "timescaledb")
 DB_USER = "cmlre"
 DB_PASS = "cmlrepassword"
@@ -20,7 +19,6 @@ try:
     conn.autocommit = True
     cursor = conn.cursor()
 
-    # Create tables if they don't exist
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS species (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -49,7 +47,6 @@ try:
 
     print("Connected to database. Seeding data...")
 
-    # Seed Species (Taxonomy)
     species_data = [
         (104, 'Aequorea victoria', 'Animalia', 'Cnidaria', 'Scyphozoa', 'Leptothecata', 'Aequoreidae', 'Aequorea', 'Verified', '/assets/jellyfish.png', 'Bioluminescent hydrozoan jellyfish found off the west coast of North America.'),
         (211, 'Acropora cervicornis', 'Animalia', 'Cnidaria', 'Anthozoa', 'Scleractinia', 'Acroporidae', 'Acropora', 'Endangered', '/assets/coral.png', 'Branching, stony coral with cylindrical branches ranging from a few centimeters to over two meters in length.'),
@@ -66,7 +63,6 @@ try:
 
     print("Species seeded.")
 
-    # Seed Fisheries CPUE
     cursor.execute("TRUNCATE TABLE fish_abundance_records CASCADE;")
     
     fisheries_data = [

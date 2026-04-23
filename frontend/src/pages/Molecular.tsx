@@ -120,10 +120,10 @@ ATCGGCTAACGTAGCTACGTAGCTAGCATCGGCTAACGTAGCTACGTAGCTAGCATCGGCTAACGT`.match(/.{1,6
                 <span>
                   {line.split('').map((char, j) => {
                     let color = 'var(--text-primary)';
-                    if (char === 'A') color = '#ef4444'; // Red
-                    if (char === 'T') color = '#3b82f6'; // Blue
-                    if (char === 'C') color = '#10b981'; // Green
-                    if (char === 'G') color = '#f59e0b'; // Yellow
+                    if (char === 'A') color = '#ef4444';
+                    if (char === 'T') color = '#3b82f6';
+                    if (char === 'C') color = '#10b981';
+                    if (char === 'G') color = '#f59e0b';
                     return <span key={j} style={{ color, fontWeight: 600 }}>{char}</span>;
                   })}
                 </span>

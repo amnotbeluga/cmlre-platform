@@ -1,11 +1,8 @@
--- Create separate database for Airflow
 CREATE DATABASE airflowdb;
 
--- Enable PostGIS on main db
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Users table
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -14,7 +11,6 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Audit log table (append-only)
 CREATE TABLE IF NOT EXISTS audit_log (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id),
@@ -24,7 +20,6 @@ CREATE TABLE IF NOT EXISTS audit_log (
     details JSONB
 );
 
--- Dataset metadata table
 CREATE TABLE IF NOT EXISTS dataset_metadata (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(500) NOT NULL,
@@ -39,7 +34,6 @@ CREATE TABLE IF NOT EXISTS dataset_metadata (
     metadata JSONB
 );
 
--- Species table (WoRMS mirror)
 CREATE TABLE IF NOT EXISTS species (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     worms_id INTEGER UNIQUE,
@@ -54,7 +48,6 @@ CREATE TABLE IF NOT EXISTS species (
     last_synced TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Fisheries survey records
 CREATE TABLE IF NOT EXISTS fish_abundance_records (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     survey_id VARCHAR(100),
@@ -74,7 +67,6 @@ CREATE TABLE IF NOT EXISTS fish_abundance_records (
     raw_data JSONB
 );
 
--- Otolith specimen records
 CREATE TABLE IF NOT EXISTS otolith_records (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     specimen_id VARCHAR(100) UNIQUE NOT NULL,
@@ -92,7 +84,6 @@ CREATE TABLE IF NOT EXISTS otolith_records (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- eDNA samples table
 CREATE TABLE IF NOT EXISTS edna_samples (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     sample_id VARCHAR(100) UNIQUE NOT NULL,
@@ -114,7 +105,6 @@ CREATE TABLE IF NOT EXISTS edna_samples (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Schema matching history
 CREATE TABLE IF NOT EXISTS schema_match_log (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     dataset_id UUID REFERENCES dataset_metadata(id),
@@ -126,7 +116,6 @@ CREATE TABLE IF NOT EXISTS schema_match_log (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Anomaly detection log
 CREATE TABLE IF NOT EXISTS anomaly_log (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     dataset_id UUID REFERENCES dataset_metadata(id),

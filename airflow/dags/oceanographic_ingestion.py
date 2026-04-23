@@ -35,7 +35,6 @@ def validate_ctd_data(**context):
     rejected = 0
 
     for record in data:
-        # Valid ranges: temperature -2..35°C, salinity 0..42 PSU
         temp = record.get("temp")
         salinity = record.get("salinity")
 

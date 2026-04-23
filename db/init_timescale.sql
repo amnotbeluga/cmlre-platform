@@ -1,7 +1,5 @@
--- Enable TimescaleDB extension
 CREATE EXTENSION IF NOT EXISTS timescaledb;
 
--- Oceanographic CTD data table
 CREATE TABLE IF NOT EXISTS ctd_measurements (
     id UUID DEFAULT uuid_generate_v4(),
     cruise_id VARCHAR(100) NOT NULL,
@@ -21,7 +19,6 @@ CREATE TABLE IF NOT EXISTS ctd_measurements (
     PRIMARY KEY (id, timestamp)
 );
 
--- Convert to TimescaleDB hypertable partitioned by time and cruise
 SELECT create_hypertable(
     'ctd_measurements',
     'timestamp',
@@ -30,12 +27,10 @@ SELECT create_hypertable(
     if_not_exists => TRUE
 );
 
--- Index for common query patterns
 CREATE INDEX IF NOT EXISTS idx_ctd_cruise ON ctd_measurements(cruise_id, timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_ctd_station ON ctd_measurements(station_id, timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_ctd_location ON ctd_measurements(latitude, longitude);
 
--- Climatological averages (materialized view refreshed by Airflow)
 CREATE MATERIALIZED VIEW IF NOT EXISTS ctd_climatology AS
 SELECT
     station_id,

@@ -14,8 +14,6 @@ volumes:
 
 services:
 
-  # ── DATABASES ──────────────────────────────────────────────
-
   timescaledb:
     image: docker.io/timescale/timescaledb-ha:pg15-latest
     container_name: cmlre-timescaledb
@@ -76,8 +74,6 @@ services:
     networks:
       - cmlre-network
 
-  # ── KAFKA ──────────────────────────────────────────────────
-
   zookeeper:
     image: docker.io/confluentinc/cp-zookeeper:7.5.0
     container_name: cmlre-zookeeper
@@ -102,8 +98,6 @@ services:
       - kafka_data:/var/lib/kafka/data
     networks:
       - cmlre-network
-
-  # ── BACKEND MICROSERVICES ──────────────────────────────────
 
   ingestion-service:
     build: ./services/ingestion
@@ -182,8 +176,6 @@ services:
     volumes:
       - ./services/analytics:/app:z
 
-  # ── AIRFLOW ────────────────────────────────────────────────
-
   airflow-webserver:
     build: ./airflow
     container_name: cmlre-airflow-web
@@ -219,8 +211,6 @@ services:
     networks:
       - cmlre-network
 
-  # ── FRONTEND ───────────────────────────────────────────────
-
   frontend:
     build: ./frontend
     container_name: cmlre-frontend
@@ -231,8 +221,6 @@ services:
     volumes:
       - ./frontend:/app:z
       - /app/node_modules
-
-  # ── API GATEWAY (Kong) ─────────────────────────────────────
 
   kong:
     image: docker.io/kong:3.4

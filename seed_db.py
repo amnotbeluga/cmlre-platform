@@ -3,8 +3,6 @@ import json
 import os
 from datetime import datetime
 
-# Connection string
-# Running this from host or container? Let's use localhost for host, timescaledb for container.
 DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
 DB_USER = "cmlre"
 DB_PASS = "cmlrepassword"
@@ -13,7 +11,6 @@ DB_NAME = "cmlredb"
 try:
     conn = psycopg2.connect(
         host=DB_HOST,
-        # If running from host, it maps to 5433!
         port=5433 if DB_HOST == "localhost" else 5432, 
         user=DB_USER,
         password=DB_PASS,
@@ -22,7 +19,6 @@ try:
     conn.autocommit = True
     cursor = conn.cursor()
 
-    # Create tables if they don't exist (in case init_postgres.sql didn't run)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS species (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -51,14 +47,12 @@ try:
 
     print("Connected to database. Seeding data...")
 
-    # Seed Species (Taxonomy)
     species_data = [
         (104, 'Aequorea victoria', 'Animalia', 'Cnidaria', 'Scyphozoa', 'Leptothecata', 'Aequoreidae', 'Aequorea', 'Verified', '/assets/jellyfish.png', 'Bioluminescent hydrozoan jellyfish found off the west coast of North America.'),
         (211, 'Acropora cervicornis', 'Animalia', 'Cnidaria', 'Anthozoa', 'Scleractinia', 'Acroporidae', 'Acropora', 'Endangered', '/assets/coral.png', 'Branching, stony coral with cylindrical branches ranging from a few centimeters to over two meters in length.'),
         (893, 'Chaetoceros sp.', 'Chromista', 'Bacillariophyta', 'Bacillariophyceae', 'Chaetocerotales', 'Chaetocerotaceae', 'Chaetoceros', 'Verified', '/assets/plankton.png', 'Microscopic phytoplankton characterized by their distinct silica cell walls (frustules).')
     ]
     
-    # We alter the species table slightly to hold image_url and description just for this demo, or put them in JSONB synonyms.
     cursor.execute("ALTER TABLE species ADD COLUMN IF NOT EXISTS image_url VARCHAR(500);")
     cursor.execute("ALTER TABLE species ADD COLUMN IF NOT EXISTS description TEXT;")
     cursor.execute("ALTER TABLE species ADD COLUMN IF NOT EXISTS status VARCHAR(50);")
@@ -73,7 +67,6 @@ try:
 
     print("Species seeded.")
 
-    # Seed Fisheries CPUE (fish_abundance_records)
     cursor.execute("TRUNCATE TABLE fish_abundance_records CASCADE;")
     
     fisheries_data = [
@@ -83,7 +76,6 @@ try:
     ]
 
     for f in fisheries_data:
-        # We put species in gear_type and zone in station_id just for quick mapping without complex joins
         cursor.execute("""
             INSERT INTO fish_abundance_records (station_id, gear_type, total_weight_kg)
             VALUES (%s, %s, %s)
